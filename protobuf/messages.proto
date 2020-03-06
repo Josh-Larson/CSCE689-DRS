@@ -1,0 +1,58 @@
+enum MessageType {
+	UNKNOWN = 0;
+	// Cluster Commands
+	JOIN_CLUSTER = 1;
+	LEAVE_CLUSTER = 2;
+	LIST_CLUSTER_MEMBERS = 3;
+	// Cluster Notifications
+	ON_JOIN_CLUSTER = 11;
+	ON_LEAVE_CLUSTER = 12;
+}
+
+message Message  {
+	MessageType type;
+	uint64 sequence;
+	bool response;
+	bytes data;
+}
+
+message Node {
+	uint64 id;
+	string name;
+	string ip;
+	uint32 port;
+	uint32 cpuParallelism;
+	uint32 gpuParallelism;
+}
+
+message JoinClusterMessage {
+	string name;
+	uint32 port;
+	uint32 cpuParallelism;
+	uint32 gpuParallelism;
+}
+
+message JoinClusterMessageResponse {
+	Node self;
+}
+
+message LeaveClusterMessage {
+	uint64 id;
+}
+
+message ListClusterMembers {
+	
+}
+
+message ListClusterMembersResponse {
+	repeated Node nodes;
+}
+
+message OnJoinClusterMessage {
+	Node node;
+}
+
+message OnLeaveClusterMessage {
+	Node node;
+}
+
