@@ -1,6 +1,6 @@
 #pragma once
 
-#include <opencv/cv.h>
+#include <opencv2/core.hpp>
 #include <cmath>
 
 cv::Rect2i calculateImageSizeForSegment(const cv::Rect2i& imageSize, const cv::Rect2i& segmentSize, int numDisparities, int blockSize) {
