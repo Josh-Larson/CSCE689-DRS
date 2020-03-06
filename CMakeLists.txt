@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2)
 project(CSCE689-DRS)
 
-set(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --std=c++1z")
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 file(GLOB_RECURSE HEADERS src/*.h)
