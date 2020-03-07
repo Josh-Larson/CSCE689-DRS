@@ -12,7 +12,7 @@ cv::Rect2i calculateImageSizeForSegment(const cv::Rect2i& imageSize, const cv::R
 	assert(numDisparities > 0);
 	assert(blockSize > 0);
 	assert(blockSize % 2 == 1);
-	auto halfBlockSize = (blockSize - 1) / 2;
+	auto halfBlockSize = (blockSize - 1) / 2 + 1;
 	auto xStart = std::max(0, segmentSize.x - numDisparities - halfBlockSize);
 	auto yStart = std::max(0, segmentSize.y - halfBlockSize);
 	
