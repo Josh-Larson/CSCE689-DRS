@@ -4,14 +4,14 @@ import math
 
 # Load Data
 print("Loading data...")
-imgL = cv2.cvtColor(cv2.imread('C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\GroundTest\\12_Dec_19\\approach1\\EO\\3L_eo.bmp'), cv2.COLOR_RGB2GRAY)
-imgR = cv2.cvtColor(cv2.imread('C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\GroundTest\\12_Dec_19\\approach1\\EO\\3R_eo.bmp'), cv2.COLOR_RGB2GRAY)
-mtxL = np.loadtxt(open("C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\examples\\perfect_calibrations_4K\\M1.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
-mtxR = np.loadtxt(open("C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\examples\\perfect_calibrations_4K\\M2.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
-distL = np.loadtxt(open("C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\examples\\perfect_calibrations_4K\\d1.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2,3,4)).astype("float")
-distR = np.loadtxt(open("C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\examples\\perfect_calibrations_4K\\d2.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2,3,4)).astype("float")
-R = np.loadtxt(open("C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\examples\\perfect_calibrations_4K\\R.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
-T = np.loadtxt(open("C:\\Users\\yafai\\Desktop\\DisSys\\CSCE689-DRS\\examples\\perfect_calibrations_4K\\T.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
+imgL = cv2.cvtColor(cv2.imread('../../GroundTest/12_Dec_19/approach1/EO/3L_eo.bmp'), cv2.COLOR_RGB2GRAY)
+imgR = cv2.cvtColor(cv2.imread('../../GroundTest/12_Dec_19/approach1/EO/3R_eo.bmp'), cv2.COLOR_RGB2GRAY)
+mtxL = np.loadtxt(open("perfect_calibrations_4K/M1.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
+mtxR = np.loadtxt(open("perfect_calibrations_4K/M2.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
+distL = np.loadtxt(open("perfect_calibrations_4K/d1.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2,3,4)).astype("float")
+distR = np.loadtxt(open("perfect_calibrations_4K/d2.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2,3,4)).astype("float")
+R = np.loadtxt(open("perfect_calibrations_4K/R.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
+T = np.loadtxt(open("perfect_calibrations_4K/T.dat", "rb"), delimiter=" ", skiprows=0, usecols=(0,1,2)).astype("float")
 
 # One time operations to fix the stereo images
 print("Initializing StereoBM...")
