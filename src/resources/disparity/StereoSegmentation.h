@@ -3,7 +3,12 @@
 #include <opencv2/core.hpp>
 #include <cmath>
 
-cv::Rect2i calculateImageSizeForSegment(const cv::Rect2i& imageSize, const cv::Rect2i& segmentSize, int numDisparities, int blockSize) {
+struct StereoSegmentation {
+	cv::Rect2i originalImageView;
+	cv::Rect2i disparityImageView;
+};
+
+StereoSegmentation calculateImageSizeForSegment(const cv::Rect2i& imageSize, const cv::Rect2i& segmentSize, int numDisparities, int blockSize) {
 	assert(imageSize.width > 0 && imageSize.height > 0);
 	assert(segmentSize.x >= 0 && segmentSize.y >= 0);
 	assert(segmentSize.width > 0 && segmentSize.height > 0);
@@ -15,9 +20,14 @@ cv::Rect2i calculateImageSizeForSegment(const cv::Rect2i& imageSize, const cv::R
 	auto halfBlockSize = (blockSize - 1) / 2 + 1;
 	auto xStart = std::max(0, segmentSize.x - numDisparities - halfBlockSize);
 	auto yStart = std::max(0, segmentSize.y - halfBlockSize);
+	auto xEnd = std::min(imageSize.width, segmentSize.x + segmentSize.width + halfBlockSize);
+	auto yEnd = std::min(imageSize.height, segmentSize.y + segmentSize.height + halfBlockSize);
 	
 	auto xStartOffset = segmentSize.x - xStart;
 	auto yStartOffset = segmentSize.y - yStart;
 	
-	return cv::Rect2i{xStartOffset, yStartOffset, segmentSize.width, segmentSize.height};
+	return StereoSegmentation{
+		cv::Rect2i{xStart, yStart, xEnd - xStart, yEnd - yStart},
+		cv::Rect2i{xStartOffset, yStartOffset, segmentSize.width, segmentSize.height}
+	};
 }
