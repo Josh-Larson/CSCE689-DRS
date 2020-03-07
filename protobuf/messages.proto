@@ -1,3 +1,7 @@
+syntax = "proto3";
+
+package resources.protobuf;
+
 enum MessageType {
 	UNKNOWN = 0;
 	// Cluster Commands
@@ -9,35 +13,35 @@ enum MessageType {
 	ON_LEAVE_CLUSTER = 12;
 }
 
-message Message  {
-	MessageType type;
-	uint64 sequence;
-	bool response;
-	bytes data;
+message Message {
+	MessageType type = 1;
+	uint64 sequence  = 2;
+	bool response    = 3;
+	bytes data       = 4;
 }
 
 message Node {
-	uint64 id;
-	string name;
-	string ip;
-	uint32 port;
-	uint32 cpuParallelism;
-	uint32 gpuParallelism;
+	uint64 id             = 1;
+	string name           = 2;
+	string ip             = 3;
+	uint32 port           = 4;
+	uint32 cpuParallelism = 5;
+	uint32 gpuParallelism = 6;
 }
 
 message JoinClusterMessage {
-	string name;
-	uint32 port;
-	uint32 cpuParallelism;
-	uint32 gpuParallelism;
+	string name           = 1;
+	uint32 port           = 2;
+	uint32 cpuParallelism = 3;
+	uint32 gpuParallelism = 4;
 }
 
 message JoinClusterMessageResponse {
-	Node self;
+	Node self = 1;
 }
 
 message LeaveClusterMessage {
-	uint64 id;
+	uint64 id = 1;
 }
 
 message ListClusterMembers {
@@ -45,14 +49,29 @@ message ListClusterMembers {
 }
 
 message ListClusterMembersResponse {
-	repeated Node nodes;
+	repeated Node nodes = 1;
 }
 
 message OnJoinClusterMessage {
-	Node node;
+	Node node = 1;
 }
 
 message OnLeaveClusterMessage {
-	Node node;
+	Node node = 1;
+}
+
+message CalculateDisparitiesMessage {
+	uint32 width     = 1;
+	uint32 height    = 2;
+	uint64 messageId = 3;
+	bytes leftImage  = 4;
+	bytes rightImage = 5;
+}
+
+message CalculateDisparitiesMessageReponse {
+	uint32 width     = 1;
+	uint32 height    = 2;
+	uint64 messageId = 3;
+	bytes disparity  = 4;
 }
 
