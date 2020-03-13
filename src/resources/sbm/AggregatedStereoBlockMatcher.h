@@ -2,19 +2,23 @@
 
 #include "StereoBlockMatcher.h"
 
+#include <CTPL/ctpl.h>
+
 #include <utility>
 #include <vector>
 #include <numeric>
+#include <memory>
 
 namespace sbm {
 
 class AggregatedStereoBlockMatcher : public StereoBlockMatcher {
 	// TODO: Add some form of thread-safety
 	std::vector<std::unique_ptr<StereoBlockMatcher>> matchers;
+	ctpl::thread_pool threadPool;
 	
 	public:
 	AggregatedStereoBlockMatcher() = default;
-	explicit AggregatedStereoBlockMatcher(std::vector<std::unique_ptr<StereoBlockMatcher>> l) : matchers(std::move(l)) {}
+	explicit AggregatedStereoBlockMatcher(std::vector<std::unique_ptr<StereoBlockMatcher>> l) : matchers(std::move(l)), threadPool(matchers.size()) {}
 	~AggregatedStereoBlockMatcher() override = default;
 	
 	void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept override;
@@ -22,7 +26,7 @@ class AggregatedStereoBlockMatcher : public StereoBlockMatcher {
 	[[nodiscard]] double getComplexity() const noexcept override { return getTotalChildComplexity() / (matchers.size() * matchers.size()); }
 	
 	protected:
-	void addChild(std::unique_ptr<StereoBlockMatcher> matcher) { matchers.emplace_back(std::move(matcher)); };
+	void addChild(std::unique_ptr<StereoBlockMatcher> matcher) { matchers.emplace_back(std::move(matcher)); threadPool.resize(matchers.size()); };
 	// TODO: Create children removers
 	
 	private:
