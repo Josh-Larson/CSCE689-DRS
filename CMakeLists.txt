@@ -5,9 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 INCLUDE(FindPkgConfig)
 find_package(OpenCV CONFIG REQUIRED )
-message(STATUS "Found OpenCV version ${OpenCV_VERSION}")
-find_package(PROTOBUF CONFIG REQUIRED 3)
-message(STATUS "Found Protobuf version ${PROTOBUF_VERSION}")
+find_package(protobuf CONFIG REQUIRED 3)
 include(FindProtobuf)
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
