@@ -2,6 +2,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <iostream>
+#include <mutex>
+#include <memory>
 #include <resources/disparity/StereoSegmentation.h>
 
 

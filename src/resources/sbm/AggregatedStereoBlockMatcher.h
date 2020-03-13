@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 #include <numeric>
+#include <memory>
 
 namespace sbm {
 
