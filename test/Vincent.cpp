@@ -5,6 +5,7 @@
 #include <mutex>
 #include <memory>
 #include <resources/disparity/StereoSegmentation.h>
+#include <resources/sbm/ThreadedStereoBlockMatcher.h>
 
 
 ////just for debugging
@@ -86,7 +87,9 @@ int main( int argc, char** argv )
     // Testing the algorithm!
     std::cout <<"Running StereoBM\n";
     cv::Mat disparity, Ndisparity;
+    auto start1 = std::chrono::high_resolution_clock::now();
     stereo->compute(remapL,remapR, disparity);
+	auto end1 = std::chrono::high_resolution_clock::now();
     cv::normalize(disparity, Ndisparity, 0, 1, cv::NORM_MINMAX, CV_64FC1);
     //cv::imshow("Disparity", Ndisparity);
 
@@ -99,16 +102,22 @@ int main( int argc, char** argv )
     std::cout << "Segmented Size: " << segmentedSize << "\n";
     std::cout << "Disparity Size: " << disparityTest.rows << " , " << disparityTest.cols << "\n";
 
-    for(int yInd = 0; yInd < segments; yInd++){
-    	for(int xInd = 0; xInd < segments; xInd++){
-    		auto transfer = cv::Rect2i{xInd*segmentedSize.width, yInd*segmentedSize.height, segmentedSize.width, segmentedSize.height};
-    		auto segmentWindow = calculateImageSizeForSegment(cv::Rect2i{0, 0, imageSize.width, imageSize.height}, transfer, numDisparities, blockSize);
-    		
-            cv::Mat segment;
-    		stereo->compute(cv::Mat(remapL, segmentWindow.originalImageView), cv::Mat(remapR, segmentWindow.originalImageView), segment);
-    		cv::Mat(segment, segmentWindow.disparityImageView).copyTo(cv::Mat(disparityTest, transfer));
-        }
-    }
+//    for(int yInd = 0; yInd < segments; yInd++){
+//    	for(int xInd = 0; xInd < segments; xInd++){
+//    		auto transfer = cv::Rect2i{xInd*segmentedSize.width, yInd*segmentedSize.height, segmentedSize.width, segmentedSize.height};
+//    		auto segmentWindow = calculateImageSizeForSegment(cv::Rect2i{0, 0, imageSize.width, imageSize.height}, transfer, numDisparities, blockSize);
+//
+//            cv::Mat segment;
+//    		stereo->compute(cv::Mat(remapL, segmentWindow.originalImageView), cv::Mat(remapR, segmentWindow.originalImageView), segment);
+//    		cv::Mat(segment, segmentWindow.disparityImageView).copyTo(cv::Mat(disparityTest, transfer));
+//        }
+//    }
+	auto threadedMatcher = sbm::ThreadedStereoBlockMatcher();
+	auto start2 = std::chrono::high_resolution_clock::now();
+	threadedMatcher.doSBM(remapL, remapR, disparityTest, numDisparities, blockSize);
+	auto end2 = std::chrono::high_resolution_clock::now();
+	fprintf(stdout, "Before: %ldns\n", std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - start1).count());
+	fprintf(stdout, "After:  %ldns\n", std::chrono::duration_cast<std::chrono::nanoseconds>(end2 - start2).count());
 
     cv::Mat NdisparityTest , output;
     cv::normalize(disparityTest, NdisparityTest, 0, 1, cv::NORM_MINMAX, CV_64FC1);
