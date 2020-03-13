@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <iostream>
+#include <resources/disparity/StereoSegmentation.h>
 
 
 ////just for debugging
@@ -98,33 +99,12 @@ int main( int argc, char** argv )
 
     for(int yInd = 0; yInd < segments; yInd++){
     	for(int xInd = 0; xInd < segments; xInd++){
-    		//print(str(xInd) + ", " + str(yInd))
-    		int xStart = int(std::max(0, xInd * segmentedSize.width - numDisparities - (blockSize/2)-1)); // blocksize/(2-1) or (blocksize/2)-1
-    		int yStart = int(std::max(0, yInd * segmentedSize.height - (blockSize/2)-1)); //same as above
-    		int xEnd = int(std::min(imageSize.width, (xInd+1) * segmentedSize.width + (blockSize/2)+1)); //same as above
-    		int yEnd = int(std::min(imageSize.height, (yInd+1) * segmentedSize.height + (blockSize/2)+1)); //same as above
-            
-    		int xStartTransfer = int(xInd * segmentedSize.width);
-    		int xEndTransfer = int(xStartTransfer + segmentedSize.width);
-    		int yStartTransfer = int(yInd * segmentedSize.height);
-    		int yEndTransfer = int(yStartTransfer + segmentedSize.height);
-            
-    		int xStartOffset = xStartTransfer - xStart;
-    		int xEndOffset = xEnd - xEndTransfer;
-    		int yStartOffset = yStartTransfer - yStart;
-    		int yEndOffset = yEnd - yEndTransfer;
-            
-    		std::cout << "    "  << xStart << ", " << yStart << "   " << xEnd << ", " << yEnd << "\n";
-            std::cout << "    "  << xStartTransfer << ", " << yStartTransfer << "   " << xEndTransfer << ", " << yEndTransfer << "\n";
-            std::cout << "    "  << xStartOffset << ", " << yStartOffset << "   " << xEndOffset << ", " << yEndOffset << "\n\n";
-
-    		// #print("    " + str(int(len(segment[1])-xStartOffset-xEndOffset)) + ", " + str(int(len(segment[0])-yStartOffset-yEndOffset)))
-            
+    		auto transfer = cv::Rect2i{xInd*segmentedSize.width, yInd*segmentedSize.height, segmentedSize.width, segmentedSize.height};
+    		auto segmentWindow = calculateImageSizeForSegment(cv::Rect2i{0, 0, imageSize.width, imageSize.height}, transfer, numDisparities, blockSize);
+    		
             cv::Mat segment;
-    		stereo->compute(remapL.rowRange(yStart,yEnd).colRange(xStart,xEnd), remapR.rowRange(yStart,yEnd).colRange(xStart,xEnd), segment);
-    		//print("    " + str(segment.shape))
-
-            disparityTest.rowRange(yStartTransfer,yEndTransfer).colRange(xStartTransfer,xEndTransfer) = segment.rowRange(yStartOffset, int(segment.rows-yEndOffset)).colRange(xStartOffset, int(segment.cols-xEndOffset));
+    		stereo->compute(cv::Mat(remapL, segmentWindow.originalImageView), cv::Mat(remapR, segmentWindow.originalImageView), segment);
+    		cv::Mat(segment, segmentWindow.disparityImageView).copyTo(cv::Mat(disparityTest, transfer));
         }
     }
 
@@ -133,6 +113,11 @@ int main( int argc, char** argv )
     
     cv::bitwise_xor(Ndisparity, NdisparityTest, output);        
     if(cv::countNonZero(output) > 0){
+    	std::mutex mutex;
+    	
+    	std::unique_lock<std::mutex> lk(mutex);
+    	// do stuff
+    	
         std::cout<< "False";
     }
     else{
@@ -144,11 +129,12 @@ int main( int argc, char** argv )
     // for yInd in range(0, segments):
     // 	cv2.line(disparityTest, (int(segmentedSize[0]) * yInd, 0), (int(segmentedSize[0]) * yInd, imageSize[1]), 255, 1)
 
-    //cv::imshow("Disparity Test", NdisparityTest)
-    //cv2.imshow('Left', remapL)
-    //cv2.imshow('Right', remapR)
-    //cv2.waitKey()
-    //cv2.destroyAllWindows()
+    cv::imshow("Disparity Test", NdisparityTest);
+    cv::waitKey(0);
+//    cv2.imshow('Left', remapL)
+//    cv2.imshow('Right', remapR)
+//    cv2.waitKey()
+//    cv2.destroyAllWindows()
     
     return 0;
 }
