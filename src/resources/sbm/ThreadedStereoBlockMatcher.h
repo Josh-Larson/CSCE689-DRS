@@ -1,16 +1,23 @@
 #pragma once
 
 #include "AggregatedStereoBlockMatcher.h"
+#include "DirectStereoBlockMatcher.h"
+
+#include <CTPL/ctpl.h>
+#include <functional>
 
 namespace sbm {
 
 class ThreadedStereoBlockMatcher : public AggregatedStereoBlockMatcher {
+	const unsigned int threadCount = std::thread::hardware_concurrency();
 	
 	public:
-	ThreadedStereoBlockMatcher() = default;
+	ThreadedStereoBlockMatcher() {
+		for (unsigned int i = 0; i < threadCount; i++) {
+			addChild(std::make_unique<DirectStereoBlockMatcher>());
+		}
+	}
 	~ThreadedStereoBlockMatcher() override = default;
-	
-	void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept override;
 	
 };
 

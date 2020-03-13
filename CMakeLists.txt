@@ -19,7 +19,7 @@ add_executable(DRS main.cpp ${SOURCES} ${HEADERS} ${PROTOBUFS})
 add_executable(DRS-Vincent test/Vincent.cpp ${SOURCES} ${HEADERS} ${PROTOBUFS})
 add_executable(DRS-Josh test/Josh.cpp ${SOURCES} ${HEADERS} ${PROTOBUFS})
 
-include_directories(PRIVATE src ${CMAKE_BINARY_DIR}/protobuf)
+include_directories(PRIVATE src ${CMAKE_BINARY_DIR}/protobuf ${CMAKE_SOURCE_DIR}/3rd-party)
 target_link_libraries(DRS pthread messages ${OpenCV_LIBS})
 target_link_libraries(DRS-Vincent pthread messages ${OpenCV_LIBS})
 target_link_libraries(DRS-Josh pthread messages ${OpenCV_LIBS})
