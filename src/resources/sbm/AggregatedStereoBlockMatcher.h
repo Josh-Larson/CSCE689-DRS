@@ -2,6 +2,7 @@
 
 #include "StereoBlockMatcher.h"
 
+#include <utility>
 #include <vector>
 #include <numeric>
 
@@ -13,6 +14,7 @@ class AggregatedStereoBlockMatcher : public StereoBlockMatcher {
 	
 	public:
 	AggregatedStereoBlockMatcher() = default;
+	explicit AggregatedStereoBlockMatcher(std::vector<std::unique_ptr<StereoBlockMatcher>> l) : matchers(std::move(l)) {}
 	~AggregatedStereoBlockMatcher() override = default;
 	
 	void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept override;
