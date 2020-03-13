@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2)
 project(CSCE689-DRS)
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --std=c++1z")
-
 INCLUDE(FindPkgConfig)
 find_package(OpenCV REQUIRED )
 find_package(Protobuf REQUIRED )
