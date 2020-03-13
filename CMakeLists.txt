@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10.2)
 project(CSCE689-DRS)
 
+set(CMAKE_CXX_STANDARD 17)
+
 INCLUDE(FindPkgConfig)
 find_package(OpenCV REQUIRED )
 find_package(Protobuf REQUIRED )
