@@ -10,7 +10,7 @@ class NetworkedStereoBlockMatcher : public StereoBlockMatcher {
 	NetworkedStereoBlockMatcher() = default;
 	~NetworkedStereoBlockMatcher() override = default;
 	
-	void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap) noexcept override;
+	void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept override;
 	[[nodiscard]] double getComplexity() const noexcept override;
 	
 };

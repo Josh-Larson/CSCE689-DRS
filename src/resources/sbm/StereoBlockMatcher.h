@@ -9,7 +9,7 @@ class StereoBlockMatcher {
 	public:
 	virtual ~StereoBlockMatcher() = default;
 	
-	virtual void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap) noexcept = 0;
+	virtual void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept = 0;
 	[[nodiscard]] virtual double getComplexity() const noexcept = 0;
 	
 	protected:
