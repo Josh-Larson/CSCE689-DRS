@@ -1,15 +1,28 @@
 #include <resources/networking/connection.h>
 
-std::string make_daytime_string()
-{
-  using namespace std; // For time_t, time and ctime;
-  time_t now = time(0);
-  return ctime(&now);
-}
-
+  //for server
   connection::pointer connection::create(boost::asio::io_context& io_context)
   {
     return connection::pointer(new connection(io_context));
+  }
+
+  //for client
+  connection::pointer connection::create(boost::asio::io_context& io_context, const char* host)
+  {
+    return connection::pointer(new connection(io_context, host));
+  }
+
+  connection::connection(boost::asio::io_context& io_context)
+    : socket_(io_context)
+  {
+  }
+
+  connection::connection(boost::asio::io_context& io_context, const char* host)
+    : socket_(io_context) 
+  {
+    tcp::resolver resolver(io_context);
+    tcp::resolver::results_type endpoints = resolver.resolve(host, "13");
+    boost::asio::connect(this->socket_, endpoints);
   }
 
   tcp::socket& connection::socket()
@@ -17,24 +30,46 @@ std::string make_daytime_string()
     return socket_;
   }
 
-  void connection::start()
+  void connection::start(){
+    readAttempt();
+  }
+
+  void connection::sendMessage()
   {
-    message_ = make_daytime_string();
+    if(this->outgoingMessageQueue.empty()){
+      return;
+    }
+    this->message_ = this->outgoingMessageQueue.front();
+    this->outgoingMessageQueue.pop_front();
 
     boost::asio::async_write(socket_, boost::asio::buffer(message_),
-        boost::bind(&connection::handle_write, shared_from_this(),
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
+        boost::bind(&connection::handle_conn, shared_from_this()));
   }
 
+  void connection::readAttempt(){
 
-  connection::connection(boost::asio::io_context& io_context)
-    : socket_(io_context)
-  {
+      boost::array<uint8_t, 128> buf;
+
+      this->socket_.async_read_some(boost::asio::buffer(buf), boost::bind(&connection::sendMessage, shared_from_this()));
+
+      for(auto b : buf){
+        this->incomingMessageQueue.emplace_back(b);
+      }
+
   }
 
-  void connection::handle_write(const boost::system::error_code& /*error*/,
-      size_t /*bytes_transferred*/)
-  {
+  void connection::handle_conn()
+  { 
+
+    start();
   }
 
+  void connection::addMessageToQueue(std::string s){
+    this->outgoingMessageQueue.emplace_back(s);
+  }
+
+  void connection::readMessageFromQueue(std::vector<uint8_t>& r){
+    if(!this->incomingMessageQueue.empty()){
+      r = this->incomingMessageQueue;
+    }
+  }
