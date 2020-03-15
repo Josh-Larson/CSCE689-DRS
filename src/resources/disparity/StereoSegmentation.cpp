@@ -3,7 +3,6 @@
 #include <cmath>
 
 StereoSegmentation calculateImageSizeForSegment(const cv::Rect2i& imageSize, const cv::Rect2i& segmentSize, int numDisparities, int blockSize) {
-	fprintf(stdout, "%d,%d  %d,%d\n", segmentSize.x, segmentSize.y, segmentSize.width, segmentSize.height);
 	assert(imageSize.width > 0 && imageSize.height > 0);
 	assert(segmentSize.x >= 0 && segmentSize.y >= 0);
 	assert(segmentSize.width > 0 && segmentSize.height > 0);
