@@ -1,11 +1,12 @@
 syntax = "proto3";
 
-package resources.protobuf;
+package networking.protobuf;
 
 enum MessageType {
 	UNKNOWN             = 0;
 	// Cluster Messages
-	LIST_CLUSTER        = 1;
+	INIT_CONNECTION     = 1;
+	LIST_CLUSTER        = 2;
 	// Work Messages
 	CALCULATE_DISPARITY = 11;
 }
@@ -24,6 +25,11 @@ message Node {
 	uint32 gpuParallelism = 5; // How much GPU compute the node has
 }
 
+message InitializeConnectionMessage {
+	uint32 cpuParallelism = 1; // How much CPU compute a node has
+	uint32 gpuParallelism = 2; // How much GPU compute a node has
+}
+
 message ListClusterMessage {
 	repeated Node nodes   = 1;
 }
@@ -36,7 +42,7 @@ message CalculateDisparitiesMessage {
 	bytes rightImage = 5;
 }
 
-message CalculateDisparitiesMessageReponse {
+message CalculateDisparitiesMessageResponse {
 	uint64 messageId = 1;
 	uint32 width     = 2;
 	uint32 height    = 3;
