@@ -21,24 +21,27 @@ public:
   typedef boost::shared_ptr<connection> pointer;
 
   static pointer create(boost::asio::io_context& io_context);
-  static pointer create(boost::asio::io_context& io_context, const char* host);
+  static pointer create(boost::asio::io_context& io_context, const char* host, const char* port);
   
   tcp::socket& socket();
   
   void start();
-  void addMessageToQueue(std::string s);
   void readMessageFromQueue(std::vector<uint8_t>& r);
-  
+  void sendMessage(std::string message);
 
 private:
   connection(boost::asio::io_context& io_context);
-  connection(boost::asio::io_context& io_context, const char* host);
+  connection(boost::asio::io_context& io_context, const char* host, const char* port);
 
   
-  void handle_conn();
-  void sendMessage();
+  void write();
+
+  
   void readAttempt();
 
+  void close();
+
+  boost::asio::io_context& io_context_;
   tcp::socket socket_;
   std::string message_;
   std::vector<uint8_t> incomingMessageQueue;

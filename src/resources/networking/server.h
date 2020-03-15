@@ -10,12 +10,13 @@
 #include <boost/asio.hpp>
 #include <resources/networking/connection.h>
 
+
 using boost::asio::ip::tcp;
 
 class server
 {
 public:
-  server(boost::asio::io_context& io_context);
+  server(boost::asio::io_context& io_context, int port);
 
 private:
   void start_accept();
@@ -23,6 +24,9 @@ private:
   void handle_accept(connection::pointer new_connection,
       const boost::system::error_code& error);
 
+  void readFromConns();
+
   boost::asio::io_context& io_context_;
   tcp::acceptor acceptor_;
+  std::vector<connection::pointer> connections;
 };
