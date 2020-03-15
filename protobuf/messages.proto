@@ -3,75 +3,43 @@ syntax = "proto3";
 package resources.protobuf;
 
 enum MessageType {
-	UNKNOWN = 0;
-	// Cluster Commands
-	JOIN_CLUSTER = 1;
-	LEAVE_CLUSTER = 2;
-	LIST_CLUSTER_MEMBERS = 3;
-	// Cluster Notifications
-	ON_JOIN_CLUSTER = 11;
-	ON_LEAVE_CLUSTER = 12;
+	UNKNOWN             = 0;
+	// Cluster Messages
+	LIST_CLUSTER        = 1;
+	// Work Messages
+	CALCULATE_DISPARITY = 11;
 }
 
-message Message {
+message Packet {
 	MessageType type = 1;
-	uint64 sequence  = 2;
-	bool response    = 3;
-	bytes data       = 4;
+	bool response    = 2;
+	bytes data       = 3;
 }
 
 message Node {
-	uint64 id             = 1;
-	string name           = 2;
-	string ip             = 3;
-	uint32 port           = 4;
-	uint32 cpuParallelism = 5;
-	uint32 gpuParallelism = 6;
+	string ip             = 1; // The public IP of a node
+	uint32 port           = 2; // The public port of a node
+	bool   self           = 3; // Whether or not this is our node information
+	uint32 cpuParallelism = 4; // How much CPU compute the node has
+	uint32 gpuParallelism = 5; // How much GPU compute the node has
 }
 
-message JoinClusterMessage {
-	string name           = 1;
-	uint32 port           = 2;
-	uint32 cpuParallelism = 3;
-	uint32 gpuParallelism = 4;
-}
-
-message JoinClusterMessageResponse {
-	Node self = 1;
-}
-
-message LeaveClusterMessage {
-	uint64 id = 1;
-}
-
-message ListClusterMembers {
-	
-}
-
-message ListClusterMembersResponse {
-	repeated Node nodes = 1;
-}
-
-message OnJoinClusterMessage {
-	Node node = 1;
-}
-
-message OnLeaveClusterMessage {
-	Node node = 1;
+message ListClusterMessage {
+	repeated Node nodes   = 1;
 }
 
 message CalculateDisparitiesMessage {
-	uint32 width     = 1;
-	uint32 height    = 2;
-	uint64 messageId = 3;
+	uint64 messageId = 1;
+	uint32 width     = 2;
+	uint32 height    = 3;
 	bytes leftImage  = 4;
 	bytes rightImage = 5;
 }
 
 message CalculateDisparitiesMessageReponse {
-	uint32 width     = 1;
-	uint32 height    = 2;
-	uint64 messageId = 3;
+	uint64 messageId = 1;
+	uint32 width     = 2;
+	uint32 height    = 3;
 	bytes disparity  = 4;
 }
 

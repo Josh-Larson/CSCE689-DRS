@@ -1,18 +1,45 @@
-#include <iostream>
-#include <resources/disparity/StereoSegmentation.h>
+#include <cstdio>
+#include <resources/protobuf/ProtobufStream.h>
+#include <resources/protobuf/ProtobufWrapper.h>
 #include <messages.pb.h>
 
+#include <string>
+#include <thread>
+
+using namespace resources::protobuf;
+
 int main(int argc, char * argv[]) {
-	auto image = cv::Rect2i{0, 0, 2448, 1632};
-	auto numDisparities = 256;
-	auto blockSize = 21;
-	for (int yInd = 0; yInd < 4; yInd++) {
-		for (int xInd = 0; xInd < 4; xInd++) {
-			auto imageSegment = cv::Rect2i{xInd*(image.width/4), yInd*(image.height/4), (image.width/4), (image.height/4)};
-			auto segmentSize = calculateImageSizeForSegment(image, imageSegment, numDisparities, blockSize);
-			
-			fprintf(stdout, "%d-%d  %d-%d    %d-%d  %d-%d\n", imageSegment.x, imageSegment.width, imageSegment.y, imageSegment.height, segmentSize.disparityImageView.x, segmentSize.disparityImageView.width, segmentSize.disparityImageView.y, segmentSize.disparityImageView.height);
-		}
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	Packet original;
+	{
+		ListClusterMessage message;
+		Node n;
+		n.set_ip("127.0.0.1");
+		n.set_port(44463);
+		n.set_self(false);
+		n.set_cpuparallelism(std::thread::hardware_concurrency());
+		n.set_gpuparallelism(0);
+		message.mutable_nodes()->Add(std::move(n));
+		original = wrap(message);
 	}
+	
+	ProtobufStream stream;
+	stream.addToReceiveBuffer(stream.encodePacket(original));
+	Packet recreated = stream.getNextPacket();
+	
+	unwrap_if(recreated, [](ListClusterMessage && message) {
+		fprintf(stdout, "ListClusterMessage:\n");
+		int index = 0;
+		for (const auto & node : message.nodes()) {
+			fprintf(stdout, "    Node #%d\n", index);
+			fprintf(stdout, "        IP:              %s\n", node.ip().c_str());
+			fprintf(stdout, "        Port:            %d\n", node.port());
+			fprintf(stdout, "        Self:            %s\n", node.self() ? "True" : "False");
+			fprintf(stdout, "        CPU Parallelism: %d\n", node.cpuparallelism());
+			fprintf(stdout, "        GPU Parallelism: %d\n", node.gpuparallelism());
+			index++;
+		}
+	});
+	
 	return 0;
 }
