@@ -19,7 +19,6 @@ void AggregatedStereoBlockMatcher::doSBM(const cv::Mat &leftImage, const cv::Mat
 	auto imageSize = cv::Rect2i{0, 0, leftImage.cols, leftImage.rows};
 	int topBoundary = 0;
 	int i = 0;
-	
 	std::mutex mutex;
 	std::condition_variable cv;
 	auto remaining = matchers.size();

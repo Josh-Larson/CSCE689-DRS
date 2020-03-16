@@ -35,17 +35,19 @@ message ListClusterMessage {
 }
 
 message CalculateDisparitiesMessage {
-	uint64 messageId = 1;
-	uint32 width     = 2;
-	uint32 height    = 3;
-	bytes leftImage  = 4;
-	bytes rightImage = 5;
+	uint64 messageId      = 1;
+	uint32 width          = 2;
+	uint32 height         = 3;
+	uint32 numDisparities = 4;
+	uint32 blockSize      = 5;
+	bytes  leftImage      = 6;
+	bytes  rightImage     = 7;
 }
 
 message CalculateDisparitiesMessageResponse {
 	uint64 messageId = 1;
 	uint32 width     = 2;
 	uint32 height    = 3;
-	bytes disparity  = 4;
+	bytes  disparity = 4;
 }
 

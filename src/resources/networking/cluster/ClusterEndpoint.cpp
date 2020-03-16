@@ -5,12 +5,66 @@
 
 #include <utility>
 #include <thread>
+#include <condition_variable>
+#include <resources/sbm/DirectStereoBlockMatcher.h>
 
 namespace networking::cluster {
+
+std::string getImageData(const cv::Mat& img) {
+	std::vector<uint8_t> ret;
+//	auto time1 = std::chrono::high_resolution_clock::now();
+	cv::imencode(".png", img, ret);
+//	auto time2 = std::chrono::high_resolution_clock::now();
+//	fprintf(stdout, "Encoding time: %ld  Size: %ld\n", std::chrono::duration_cast<std::chrono::nanoseconds>(time2 - time1).count(), ret.size());
+	return std::string(ret.begin(), ret.end());
+}
+
+cv::Mat getImageFromData(const std::string & data, int width, int height, int type) {
+	return cv::imdecode(cv::Mat(std::vector<uint8_t>(data.begin(), data.end()), true), -1);
+}
 
 ClusterEndpoint::ClusterEndpoint(ClusterEndpointId id, std::shared_ptr<ClusterManager> manager, std::function<void(std::vector<uint8_t> &&)> sendMessage) :
 		id(std::move(id)), manager(std::move(manager)), sendMessage(std::move(sendMessage)) {
 	sendInitConnection();
+}
+
+void ClusterEndpoint::doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept {
+	assert(leftImage.rows == rightImage.rows && leftImage.cols == rightImage.cols);
+	
+	auto messageId = disparityMessageId.fetch_add(1);
+	std::mutex callbackWaitMutex;
+	std::condition_variable callbackWait;
+	{
+		std::unique_lock lk(dataLock);
+		disparityCallbacks[messageId] = [&](cv::Mat && mat) {
+			disparityMap = std::move(mat);
+			std::unique_lock callbackLock(callbackWaitMutex);
+			callbackWait.notify_all();
+		};
+	}
+	
+	{
+		protobuf::CalculateDisparitiesMessage message;
+		message.set_messageid(messageId);
+		message.set_width(leftImage.cols);
+		message.set_height(leftImage.rows);
+		message.set_numdisparities(numDisparities);
+		message.set_blocksize(blockSize);
+		message.set_leftimage(getImageData(leftImage));
+		message.set_rightimage(getImageData(rightImage));
+		sendMessage(protobuf::ProtobufStream::encodePacket(wrap(message)));
+	}
+	
+	std::unique_lock callbackLock(callbackWaitMutex);
+	callbackWait.wait(callbackLock);
+}
+
+double ClusterEndpoint::getComplexity() const noexcept {
+	auto parallelism = id.cpuParalleism;
+	if (parallelism == 0)
+		return 1000.0;
+	else
+		return 1000.0 / parallelism;
 }
 
 void ClusterEndpoint::onDataReceived(const std::vector<uint8_t> &data) {
@@ -49,11 +103,34 @@ void ClusterEndpoint::onReceiveListClusterMessage(protobuf::ListClusterMessage &
 }
 
 void ClusterEndpoint::onReceiveCalculateDisparities(protobuf::CalculateDisparitiesMessage &&message) {
-	// TODO: SBM
+	auto leftImage = getImageFromData(message.leftimage(), message.width(), message.height(), CV_8U);
+	auto rightImage = getImageFromData(message.rightimage(), message.width(), message.height(), CV_8U);
+	auto sbm = sbm::DirectStereoBlockMatcher();
+	cv::Mat disparity, disparityOutput;
+	sbm.doSBM(leftImage, rightImage, disparity, message.numdisparities(), message.blocksize());
+	disparity.convertTo(disparityOutput, CV_16U);
+	disparity = disparityOutput;
+	{
+		auto imageData = getImageData(disparity);
+		protobuf::CalculateDisparitiesMessageResponse disparitiesMessage;
+		disparitiesMessage.set_messageid(message.messageid());
+		disparitiesMessage.set_width(disparity.cols);
+		disparitiesMessage.set_height(disparity.rows);
+		disparitiesMessage.set_disparity(imageData);
+		sendMessage(protobuf::ProtobufStream::encodePacket(wrap(disparitiesMessage)));
+	}
 }
 
 void ClusterEndpoint::onReceiveCalculateDisparitiesResponse(protobuf::CalculateDisparitiesMessageResponse &&message) {
-
+	auto disparity = getImageFromData(message.disparity(), message.width(), message.height(), CV_16U);
+	cv::Mat disparityOutput;
+	disparity.convertTo(disparityOutput, CV_16S);
+	std::unique_lock lk(dataLock);
+	
+	const auto callbackIterator = disparityCallbacks.find(message.messageid());
+	if (callbackIterator != disparityCallbacks.end()) {
+		callbackIterator->second(std::move(disparityOutput));
+	}
 }
 
 } // namespace networking::cluster
