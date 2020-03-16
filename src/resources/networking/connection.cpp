@@ -7,9 +7,9 @@ connection::pointer connection::create(boost::asio::io_context& io_context)
 }
 
 //for outgoin
-connection::pointer connection::create(boost::asio::io_context& io_context, const char* host, const char* port)
+connection::pointer connection::create(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port)
 {
-  return connection::pointer(new connection(io_context, host, port));
+  return connection::pointer(new connection(io_context, manager, host, port));
 }
 
 connection::connection(boost::asio::io_context& io_context)
@@ -17,25 +17,30 @@ connection::connection(boost::asio::io_context& io_context)
 {
 }
 
-connection::connection(boost::asio::io_context& io_context, const char* host, const char* port)
+connection::connection(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port)
   : socket_(io_context) , io_context_(io_context)
 {
   tcp::resolver resolver(io_context);
   tcp::resolver::results_type endpoints = resolver.resolve(host, port);
-  boost::asio::steady_timer t(io_context, boost::asio::chrono::seconds(120));
-  t.async_wait([this](const boost::system::error_code& /*e*/)
-    {
-      socket_.close();
-    });
+	clusterEndpoint = manager->createEndpoint( {host, std::stoi(port)} , std::bind(&connection::sendMessage, this, std::placeholders::_1) );
+//  boost::asio::steady_timer t(io_context);
+//  t.expires_after(std::chrono::seconds(120));
+//  t.async_wait([this](const boost::system::error_code& /*e*/)
+//    {
+//  	fprintf(stdout, "Timed out\n");
+//      socket_.close();
+//    });
   boost::asio::async_connect(this->socket_, endpoints, [this](const boost::system::error_code& ec,
     const tcp::endpoint& endpoint)
     {
       if (!ec)
       {
-        readAttempt();
+	      fprintf(stdout, "Successfully connected\n");
+	      readAttempt();
       }
       else
       {
+	      fprintf(stdout, "Failed to connect\n");
         socket_.close();
       }
     });
@@ -67,9 +72,8 @@ void connection::sendMessage(std::vector<uint8_t>&& message)
 
 void connection::readAttempt(){
 
-  std::vector<uint8_t> buf;
-
-  boost::asio::async_read(socket_, boost::asio::dynamic_buffer(buf), [this, buf](boost::system::error_code ec, std::size_t /*length*/)
+	buf.clear();
+  boost::asio::async_read(socket_, boost::asio::dynamic_buffer(buf), [this](boost::system::error_code ec, std::size_t /*length*/)
     {
       if (!ec)
       {
@@ -85,7 +89,7 @@ void connection::readAttempt(){
 
 
 void connection::write()
-{ 
+{
   boost::asio::async_write(socket_, boost::asio::buffer(outgoingMessageQueue.front()),
     [this](boost::system::error_code ec, std::size_t /*length*/)
     {

@@ -68,6 +68,7 @@ double ClusterEndpoint::getComplexity() const noexcept {
 }
 
 void ClusterEndpoint::onDataReceived(const std::vector<uint8_t> &data) {
+	fprintf(stdout, "Received %ld bytes\n", data.size());
 	receiveStream.addToReceiveBuffer(data);
 	while (receiveStream.isPacketReady()) {
 		protobuf::Packet packet = receiveStream.getNextPacket();
@@ -96,6 +97,7 @@ void ClusterEndpoint::sendClusterInfo() const {
 }
 
 void ClusterEndpoint::onReceiveInitializeConnection(protobuf::InitializeConnectionMessage &&message) {
+	fprintf(stdout, "RX Init Connection\n");
 	if (id.port == 0)
 		id.port = message.localserverport();
 	id.cpuParalleism = message.cpuparallelism();

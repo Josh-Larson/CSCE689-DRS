@@ -24,7 +24,10 @@ public:
   typedef boost::shared_ptr<connection> pointer;
 
   static pointer create(boost::asio::io_context& io_context);
-  static pointer create(boost::asio::io_context& io_context, const char* host, const char* port);
+  static pointer create(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port);
+	~connection() {
+		fprintf(stdout, "Closing connection\n");
+	}
   
   tcp::socket& socket();
   
@@ -36,7 +39,7 @@ public:
 
 private:
   connection(boost::asio::io_context& io_context);
-  connection(boost::asio::io_context& io_context, const char* host, const char* port);
+  connection(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port);
 
   void write();
   void readAttempt();
@@ -47,4 +50,5 @@ private:
   std::string message_;
   std::vector<uint8_t> incomingMessageQueue;
   std::deque<std::vector<uint8_t>> outgoingMessageQueue;
+	std::vector<uint8_t> buf;
 };
