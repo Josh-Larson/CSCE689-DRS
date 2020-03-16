@@ -21,4 +21,22 @@ sbm::AggregatedStereoBlockMatcher ClusterManager::getSBM() {
 	}));
 }
 
+std::vector<protobuf::Node> ClusterManager::getClusterNodes() const {
+	return transformEndpoints<protobuf::Node>([](const ClusterEndpointId & id, const std::vector<std::weak_ptr<ClusterEndpoint>> & endpointList) -> std::optional<protobuf::Node> {
+		for (const std::weak_ptr<ClusterEndpoint> & endpoint : endpointList) {
+			std::shared_ptr<ClusterEndpoint> ret = endpoint.lock();
+			if (ret != nullptr) {
+				auto node = protobuf::Node();
+				auto endpointId = ret->getId();
+				node.set_ip(endpointId.ip);
+				node.set_port(endpointId.port);
+				node.set_cpuparallelism(endpointId.cpuParalleism);
+				node.set_gpuparallelism(endpointId.gpuParalleism);
+				return node;
+			}
+		}
+		return std::nullopt;
+	});
+}
+
 }
