@@ -38,12 +38,8 @@ private:
   connection(boost::asio::io_context& io_context);
   connection(boost::asio::io_context& io_context, const char* host, const char* port);
 
-  
   void write();
-
-  
   void readAttempt();
-
   void close();
 
   boost::asio::io_context& io_context_;

@@ -22,13 +22,30 @@ connection::connection(boost::asio::io_context& io_context, const char* host, co
 {
   tcp::resolver resolver(io_context);
   tcp::resolver::results_type endpoints = resolver.resolve(host, port);
-  boost::asio::connect(this->socket_, endpoints);
+  boost::asio::steady_timer t(io_context, boost::asio::chrono::seconds(120));
+  t.async_wait([this](const boost::system::error_code& /*e*/)
+    {
+      socket_.close();
+    });
+  boost::asio::async_connect(this->socket_, endpoints, [this](const boost::system::error_code& ec,
+    const tcp::endpoint& endpoint)
+    {
+      if (!ec)
+      {
+        readAttempt();
+      }
+      else
+      {
+        socket_.close();
+      }
+    });
 }
 
 tcp::socket& connection::socket()
 {
   return socket_;
 }
+
 
 void connection::start(){
   readAttempt();
