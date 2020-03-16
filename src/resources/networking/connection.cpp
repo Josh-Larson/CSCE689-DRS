@@ -15,6 +15,7 @@ connection::pointer connection::create(boost::asio::io_context& io_context, std:
 connection::connection(boost::asio::io_context& io_context)
   : socket_(io_context) , io_context_(io_context)
 {
+	buf.resize(8*1024);
 }
 
 connection::connection(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port)
@@ -22,6 +23,7 @@ connection::connection(boost::asio::io_context& io_context, std::shared_ptr<netw
 {
   tcp::resolver resolver(io_context);
   tcp::resolver::results_type endpoints = resolver.resolve(host, port);
+	buf.resize(8*1024);
 	clusterEndpoint = manager->createEndpoint( {host, std::stoi(port)} , std::bind(&connection::sendMessage, this, std::placeholders::_1) );
 //  boost::asio::steady_timer t(io_context);
 //  t.expires_after(std::chrono::seconds(120));
@@ -72,12 +74,11 @@ void connection::sendMessage(std::vector<uint8_t>&& message)
 
 void connection::readAttempt(){
 
-	buf.clear();
-  boost::asio::async_read(socket_, boost::asio::dynamic_buffer(buf), [this](boost::system::error_code ec, std::size_t /*length*/)
+  socket_.async_read_some(boost::asio::mutable_buffer(buf.data(), 8*1024), [this](boost::system::error_code ec, std::size_t length)
     {
       if (!ec)
       {
-        clusterEndpoint->onDataReceived(buf);
+        clusterEndpoint->onDataReceived(buf, length);
         readAttempt();
       }
       else
@@ -91,11 +92,11 @@ void connection::readAttempt(){
 void connection::write()
 {
   boost::asio::async_write(socket_, boost::asio::buffer(outgoingMessageQueue.front()),
-    [this](boost::system::error_code ec, std::size_t /*length*/)
+    [this](boost::system::error_code ec, std::size_t length)
     {
       if (!ec)
       {
-        outgoingMessageQueue.pop_front();
+	      outgoingMessageQueue.pop_front();
         if (!outgoingMessageQueue.empty())
         {
           write();

@@ -10,8 +10,8 @@ std::shared_ptr<ClusterEndpoint> ClusterManager::createEndpoint(const ClusterEnd
 	return endpoint;
 }
 
-sbm::AggregatedStereoBlockMatcher ClusterManager::getSBM() {
-	return sbm::AggregatedStereoBlockMatcher(transformEndpoints<std::shared_ptr<sbm::StereoBlockMatcher>>([](const ClusterEndpointId & id, const std::vector<std::weak_ptr<ClusterEndpoint>> & endpointList) -> std::optional<std::shared_ptr<sbm::StereoBlockMatcher>> {
+std::shared_ptr<sbm::AggregatedStereoBlockMatcher> ClusterManager::getSBM() {
+	return std::make_shared<sbm::AggregatedStereoBlockMatcher>(transformEndpoints<std::shared_ptr<sbm::StereoBlockMatcher>>([](const ClusterEndpointId & id, const std::vector<std::weak_ptr<ClusterEndpoint>> & endpointList) -> std::optional<std::shared_ptr<sbm::StereoBlockMatcher>> {
 		for (const std::weak_ptr<ClusterEndpoint> & endpoint : endpointList) {
 			std::shared_ptr<ClusterEndpoint> ret = endpoint.lock();
 			if (ret != nullptr)

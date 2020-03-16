@@ -15,6 +15,11 @@ class ProtobufStream {
 		receiveBuffer.insert(receiveBuffer.end(), buffer.begin(), buffer.end());
 	}
 	
+	template<typename T>
+	void addToReceiveBuffer(const T &buffer, size_t length) {
+		receiveBuffer.insert(receiveBuffer.end(), buffer.begin(), buffer.begin() + length);
+	}
+	
 	[[nodiscard]] bool isPacketReady() const noexcept {
 		if (receiveBuffer.size() < 8)
 			return false;

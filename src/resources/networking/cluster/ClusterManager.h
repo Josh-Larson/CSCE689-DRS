@@ -25,7 +25,7 @@ class ClusterManager : public std::enable_shared_from_this<ClusterManager> {
 	
 	std::shared_ptr<ClusterEndpoint> createEndpoint(const ClusterEndpointId& id, std::function<void(std::vector<uint8_t> &&)> sendMessage);
 	
-	sbm::AggregatedStereoBlockMatcher getSBM();
+	std::shared_ptr<sbm::AggregatedStereoBlockMatcher> getSBM();
 	
 	inline void setLocalServerPort(uint16_t localServerPort_) noexcept { this->localServerPort = localServerPort_; };
 	[[nodiscard]] uint16_t getLocalServerPort() const noexcept { return localServerPort; }

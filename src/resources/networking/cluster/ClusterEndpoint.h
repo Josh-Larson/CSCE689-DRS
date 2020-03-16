@@ -28,7 +28,7 @@ class ClusterEndpoint : public sbm::StereoBlockMatcher {
 	public:
 	ClusterEndpoint(ClusterEndpointId id, std::shared_ptr<ClusterManager> manager, std::function<void(std::vector<uint8_t> &&)> sendMessage);
 	
-	void onDataReceived(const std::vector<uint8_t> & data);
+	void onDataReceived(const std::vector<uint8_t> & data, size_t length);
 	void doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage, cv::Mat &disparityMap, int numDisparities, int blockSize) noexcept override;
 	[[nodiscard]] double getComplexity() const noexcept override;
 	

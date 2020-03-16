@@ -21,22 +21,23 @@ void AggregatedStereoBlockMatcher::doSBM(const cv::Mat &leftImage, const cv::Mat
 	int i = 0;
 	std::mutex mutex;
 	std::condition_variable cv;
-	auto remaining = matchers.size();
+	std::atomic_uint64_t remaining = matchers.size();
 	for (const auto & matcher : matchers) {
 		const auto bottomBoundary = static_cast<int>(std::lround((std::accumulate(complexities.begin(), complexities.begin()+i+1, 0.0) / complexitySum) * leftImage.rows));
 		
-		const auto transfer = cv::Rect2i{0, topBoundary, imageSize.width, bottomBoundary - topBoundary};
-		const auto segmentWindow = calculateImageSizeForSegment(imageSize, transfer, numDisparities, blockSize);
-		
-		threadPool.push([&, segmentWindow, transfer, numDisparities, blockSize](int id) {
-			cv::Mat segment;
+		threadPool.push([&, bottomBoundary, topBoundary, numDisparities, blockSize](int id) {
+			const auto transfer = cv::Rect2i{0, topBoundary, imageSize.width, bottomBoundary - topBoundary};
+			const auto segmentWindow = calculateImageSizeForSegment(imageSize, transfer, numDisparities, blockSize);
+			
+			cv::Mat segment(cv::Size2i{segmentWindow.originalImageView.width, segmentWindow.originalImageView.height}, CV_16S);
 			matcher->doSBM(cv::Mat(leftImage, segmentWindow.originalImageView), cv::Mat(rightImage, segmentWindow.originalImageView), segment, numDisparities, blockSize);
 			cv::Mat(segment, segmentWindow.disparityImageView).copyTo(cv::Mat(disparityMap, transfer));
 			
 			std::unique_lock lk(mutex);
-			remaining--;
+			remaining.fetch_sub(1);
 			cv.notify_one();
 		});
+		
 		topBoundary = bottomBoundary;
 		i++;
 	}

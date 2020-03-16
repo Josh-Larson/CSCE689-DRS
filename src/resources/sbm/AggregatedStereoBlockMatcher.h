@@ -18,6 +18,8 @@ class AggregatedStereoBlockMatcher : public StereoBlockMatcher {
 	
 	public:
 	AggregatedStereoBlockMatcher() = default;
+	AggregatedStereoBlockMatcher(const AggregatedStereoBlockMatcher & copy) : matchers(copy.matchers) {}
+	AggregatedStereoBlockMatcher(AggregatedStereoBlockMatcher && move) noexcept : matchers(std::move(move.matchers)) {}
 	explicit AggregatedStereoBlockMatcher(std::vector<std::shared_ptr<StereoBlockMatcher>> l) : matchers(std::move(l)), threadPool(matchers.size()) {}
 	~AggregatedStereoBlockMatcher() override = default;
 	
