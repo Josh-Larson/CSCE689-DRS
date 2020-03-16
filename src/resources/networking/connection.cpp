@@ -34,7 +34,7 @@ void connection::start(){
   readAttempt();
 }
 
-void connection::sendMessage(std::string message)
+void connection::sendMessage(std::vector<uint8_t>&& message)
 {
   boost::asio::post(io_context_,
       [this, message]()
@@ -50,15 +50,13 @@ void connection::sendMessage(std::string message)
 
 void connection::readAttempt(){
 
-  boost::array<uint8_t, 128> buf;
+  std::vector<uint8_t> buf;
 
-  this->socket_.async_read_some(boost::asio::buffer(buf), [this, buf](boost::system::error_code ec, std::size_t /*length*/)
+  boost::asio::async_read(socket_, boost::asio::dynamic_buffer(buf), [this, buf](boost::system::error_code ec, std::size_t /*length*/)
     {
       if (!ec)
       {
-        for(auto b : buf){
-          this->incomingMessageQueue.emplace_back(b);
-        }
+        clusterEndpoint->onDataReceived(buf);
         readAttempt();
       }
       else

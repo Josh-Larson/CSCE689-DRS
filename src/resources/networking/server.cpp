@@ -1,6 +1,6 @@
 #include <resources/networking/server.h>
 
-server::server(boost::asio::io_context& io_context, int port) : io_context_(io_context), acceptor_(io_context, tcp::endpoint(tcp::v4(), port))
+server::server(boost::asio::io_context& io_context, int port, std::shared_ptr<networking::cluster::ClusterManager> clusterMgr) : io_context_(io_context), acceptor_(io_context, tcp::endpoint(tcp::v4(), port)), clusterManager(clusterMgr)
 {
     start_accept();
 }
@@ -18,6 +18,9 @@ void server::handle_accept(connection::pointer new_connection, const boost::syst
     if (!error)
     {
         this->connections.emplace_back(new_connection);
+        std::string ip = new_connection->socket().remote_endpoint().address().to_string();
+        new_connection->clusterEndpoint = clusterManager->createEndpoint( {ip, 0} , std::bind(&connection::sendMessage, new_connection, std::placeholders::_1) );
+
         new_connection->start();
     }
 

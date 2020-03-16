@@ -9,6 +9,9 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
+#include <resources/networking/cluster/ClusterEndpoint.h>
+#include <resources/networking/cluster/ClusterManager.h>
+
 
 using boost::asio::ip::tcp;
 
@@ -27,7 +30,9 @@ public:
   
   void start();
   void readMessageFromQueue(std::vector<uint8_t>& r);
-  void sendMessage(std::string message);
+  void sendMessage(std::vector<uint8_t>&& message);
+
+  std::shared_ptr<networking::cluster::ClusterEndpoint> clusterEndpoint;
 
 private:
   connection(boost::asio::io_context& io_context);
@@ -45,5 +50,5 @@ private:
   tcp::socket socket_;
   std::string message_;
   std::vector<uint8_t> incomingMessageQueue;
-  std::deque<std::string> outgoingMessageQueue;
+  std::deque<std::vector<uint8_t>> outgoingMessageQueue;
 };
