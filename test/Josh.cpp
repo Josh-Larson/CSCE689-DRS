@@ -43,7 +43,8 @@ int main(int argc, char * argv[]) {
 	auto manager = std::make_shared<ClusterManager>();
 	std::queue<std::vector<uint8_t>> aInboundMessages;
 	std::queue<std::vector<uint8_t>> bInboundMessages;
-	auto a = manager->createEndpoint({"127.0.0.1", 5000}, [&](auto && msg) { bInboundMessages.emplace(msg); });
+	manager->setLocalServerPort(5000);
+	auto a = manager->createEndpoint({"127.0.0.1", 0}, [&](auto && msg) { bInboundMessages.emplace(msg); });
 	auto b = manager->createEndpoint({"127.0.0.1", 5001}, [&](auto && msg) { aInboundMessages.emplace(msg); });
 	
 	auto t = std::thread([&]() {

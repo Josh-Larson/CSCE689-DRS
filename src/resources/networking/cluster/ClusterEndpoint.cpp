@@ -88,7 +88,10 @@ void ClusterEndpoint::sendInitConnection() const {
 
 void ClusterEndpoint::sendClusterInfo() const {
 	protobuf::ListClusterMessage message;
-	// TODO: Figure this out
+	for (auto node : manager->getClusterNodes()) {
+		node.set_self(node.ip() == id.ip && node.port() == id.port);
+		message.mutable_nodes()->Add(std::move(node));
+	}
 	sendMessage(protobuf::ProtobufStream::encodePacket(wrap(message)));
 }
 
@@ -101,7 +104,14 @@ void ClusterEndpoint::onReceiveInitializeConnection(protobuf::InitializeConnecti
 }
 
 void ClusterEndpoint::onReceiveListClusterMessage(protobuf::ListClusterMessage &&message) {
-	// TODO: Do something with this
+	for (const auto & node : message.nodes()) {
+		fprintf(stdout, "Cluster Node:\n");
+		fprintf(stdout, "    IP:   %s\n", node.ip().c_str());
+		fprintf(stdout, "    Port: %d\n", node.port());
+		fprintf(stdout, "    Self: %s\n", node.self() ? "True" : "False");
+		fprintf(stdout, "    CPU:  %d\n", node.cpuparallelism());
+		fprintf(stdout, "    GPU:  %d\n", node.gpuparallelism());
+	}
 }
 
 void ClusterEndpoint::onReceiveCalculateDisparities(protobuf::CalculateDisparitiesMessage &&message) {
