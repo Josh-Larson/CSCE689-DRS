@@ -26,8 +26,9 @@ message Node {
 }
 
 message InitializeConnectionMessage {
-	uint32 cpuParallelism = 1; // How much CPU compute a node has
-	uint32 gpuParallelism = 2; // How much GPU compute a node has
+	uint32 localServerPort = 1; // Currently listening server port
+	uint32 cpuParallelism  = 2; // How much CPU compute a node has
+	uint32 gpuParallelism  = 3; // How much GPU compute a node has
 }
 
 message ListClusterMessage {

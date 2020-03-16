@@ -80,6 +80,7 @@ void ClusterEndpoint::onDataReceived(const std::vector<uint8_t> &data) {
 
 void ClusterEndpoint::sendInitConnection() const {
 	protobuf::InitializeConnectionMessage message;
+	message.set_localserverport(manager->getLocalServerPort());
 	message.set_cpuparallelism(std::thread::hardware_concurrency());
 	message.set_gpuparallelism(0); // TODO: Figure out how to figure this out
 	sendMessage(protobuf::ProtobufStream::encodePacket(wrap(message)));
@@ -92,9 +93,10 @@ void ClusterEndpoint::sendClusterInfo() const {
 }
 
 void ClusterEndpoint::onReceiveInitializeConnection(protobuf::InitializeConnectionMessage &&message) {
-	fprintf(stdout, "Received Initialize Connection:\n");
-	fprintf(stdout, "    CPU: %d\n", message.cpuparallelism());
-	fprintf(stdout, "    GPU: %d\n", message.gpuparallelism());
+	if (id.port == 0)
+		id.port = message.localserverport();
+	id.cpuParalleism = message.cpuparallelism();
+	id.gpuParalleism = message.gpuparallelism();
 	sendClusterInfo();
 }
 
