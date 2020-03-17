@@ -65,11 +65,17 @@ int main(int argc, char *argv[]) {
 		cv::remap(imgR, remapR, mapRx, mapRy, cv::INTER_LINEAR);
 		
 		cv::Mat disparity(imageSize, CV_16S), disparityNormalized;
-		daar.doSBM(remapL, remapR, disparity, numDisparities, blockSize);
-		cv::normalize(disparity, disparityNormalized, 0, 1, cv::NORM_MINMAX, CV_64FC1);
-		cv::imshow("Disparity", disparityNormalized);
-		cv::waitKey(0);
-		cv::destroyAllWindows();
+		
+		auto time1 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < 100; i++)
+			daar.doSBM(remapL, remapR, disparity, numDisparities, blockSize);
+		auto time2 = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(time2 - time1).count();
+		fprintf(stdout, "Time Per Iteration: %ld\n", duration / 100);
+//		cv::normalize(disparity, disparityNormalized, 0, 1, cv::NORM_MINMAX, CV_64FC1);
+//		cv::imshow("Disparity", disparityNormalized);
+//		cv::waitKey(0);
+//		cv::destroyAllWindows();
 	} else {
 		daar.waitForServer();
 	}

@@ -79,7 +79,7 @@ int main(int argc, char * argv[]) {
 		cv::remap(imgR, remapR, mapRx, mapRy, cv::INTER_LINEAR);
 		
 		cv::Mat disparity(imageSize, CV_16S), disparityNormalized;
-		manager->getSBM().doSBM(remapL, remapR, disparity, numDisparities, blockSize);
+		manager->getSBM()->doSBM(remapL, remapR, disparity, numDisparities, blockSize);
 		cv::normalize(disparity, disparityNormalized, 0, 1, cv::NORM_MINMAX, CV_64FC1);
 		cv::imshow("Disparity", disparityNormalized);
 		cv::waitKey(0);
@@ -90,12 +90,12 @@ int main(int argc, char * argv[]) {
 		while (!aInboundMessages.empty()) {
 			auto rx = aInboundMessages.front();
 			aInboundMessages.pop();
-			a->onDataReceived(rx);
+			a->onDataReceived(rx, rx.size());
 		}
 		while (!bInboundMessages.empty()) {
 			auto rx = bInboundMessages.front();
 			bInboundMessages.pop();
-			b->onDataReceived(rx);
+			b->onDataReceived(rx, rx.size());
 		}
 	}
 	t.join();

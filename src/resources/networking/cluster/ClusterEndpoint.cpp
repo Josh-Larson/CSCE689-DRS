@@ -10,17 +10,24 @@
 
 namespace networking::cluster {
 
+template<int pixelSize=1>
 std::string getImageData(const cv::Mat& img) {
-	std::vector<uint8_t> ret;
-//	auto time1 = std::chrono::high_resolution_clock::now();
-	cv::imencode(".png", img, ret);
-//	auto time2 = std::chrono::high_resolution_clock::now();
-//	fprintf(stdout, "Encoding time: %ld  Size: %ld\n", std::chrono::duration_cast<std::chrono::nanoseconds>(time2 - time1).count(), ret.size());
-	return std::string(ret.begin(), ret.end());
+	// Code based on: https://stackoverflow.com/questions/26681713/convert-mat-to-array-vector-in-opencv
+	std::string ret;
+	if (img.isContinuous()) {
+		ret.assign(img.data, img.data + img.total() * pixelSize);
+	} else {
+		for (int i = 0; i < img.rows; ++i) {
+			ret.insert(ret.end(), img.ptr<char>(i), img.ptr<char>(i) + img.cols * pixelSize);
+		}
+	}
+	return ret;
 }
 
 cv::Mat getImageFromData(const std::string & data, int width, int height, int type) {
-	return cv::imdecode(cv::Mat(std::vector<uint8_t>(data.begin(), data.end()), true), -1);
+	auto ret = cv::Mat(height, width, type);
+	memcpy(ret.data, data.data(), data.length());
+	return ret;
 }
 
 ClusterEndpoint::ClusterEndpoint(ClusterEndpointId id, std::shared_ptr<ClusterManager> manager, std::function<void(std::vector<uint8_t> &&)> sendMessage) :
@@ -61,10 +68,11 @@ void ClusterEndpoint::doSBM(const cv::Mat &leftImage, const cv::Mat &rightImage,
 
 double ClusterEndpoint::getComplexity() const noexcept {
 	auto parallelism = id.cpuParalleism;
+	constexpr auto weight = 1000 * 1.0;
 	if (parallelism == 0)
-		return 1000.0;
+		return weight;
 	else
-		return 1000.0 / parallelism;
+		return weight * parallelism;
 }
 
 void ClusterEndpoint::onDataReceived(const std::vector<uint8_t> &data, size_t length) {
@@ -119,10 +127,8 @@ void ClusterEndpoint::onReceiveCalculateDisparities(protobuf::CalculateDispariti
 	auto rightImage = getImageFromData(message.rightimage(), message.width(), message.height(), CV_8U);
 	cv::Mat disparity, disparityOutput;
 	blockMatcher.doSBM(leftImage, rightImage, disparity, message.numdisparities(), message.blocksize());
-	disparity.convertTo(disparityOutput, CV_16U);
-	disparity = disparityOutput;
 	{
-		auto imageData = getImageData(disparity);
+		auto imageData = getImageData<2>(disparity);
 		protobuf::CalculateDisparitiesMessageResponse disparitiesMessage;
 		disparitiesMessage.set_messageid(message.messageid());
 		disparitiesMessage.set_width(disparity.cols);
@@ -133,14 +139,12 @@ void ClusterEndpoint::onReceiveCalculateDisparities(protobuf::CalculateDispariti
 }
 
 void ClusterEndpoint::onReceiveCalculateDisparitiesResponse(protobuf::CalculateDisparitiesMessageResponse &&message) {
-	auto disparity = getImageFromData(message.disparity(), message.width(), message.height(), CV_16U);
-	cv::Mat disparityOutput;
-	disparity.convertTo(disparityOutput, CV_16S);
+	auto disparity = getImageFromData(message.disparity(), message.width(), message.height(), CV_16S);
 	std::unique_lock lk(dataLock);
 	
 	const auto callbackIterator = disparityCallbacks.find(message.messageid());
 	if (callbackIterator != disparityCallbacks.end()) {
-		callbackIterator->second(std::move(disparityOutput));
+		callbackIterator->second(std::move(disparity));
 	}
 }
 
