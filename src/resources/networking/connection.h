@@ -13,42 +13,26 @@
 #include <resources/networking/cluster/ClusterManager.h>
 
 
-using boost::asio::ip::tcp;
-
-std::string make_daytime_string();
-
-class connection
-  : public boost::enable_shared_from_this<connection>
-{
-public:
-  typedef boost::shared_ptr<connection> pointer;
-
-  static pointer create(boost::asio::io_context& io_context);
-  static pointer create(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port);
-	~connection() {
-		fprintf(stdout, "Closing connection\n");
-	}
-  
-  tcp::socket& socket();
-  
-  void start();
-  void readMessageFromQueue(std::vector<uint8_t>& r);
-  void sendMessage(std::vector<uint8_t>&& message);
-
-  std::shared_ptr<networking::cluster::ClusterEndpoint> clusterEndpoint;
-
-private:
-  connection(boost::asio::io_context& io_context);
-  connection(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager, const char* host, const char* port);
-
-  void write();
-  void readAttempt();
-  void close();
-
-  boost::asio::io_context& io_context_;
-  tcp::socket socket_;
-  std::string message_;
-  std::vector<uint8_t> incomingMessageQueue;
-  std::deque<std::vector<uint8_t>> outgoingMessageQueue;
-	std::vector<uint8_t> buf;
+class connection : public std::enable_shared_from_this<connection> {
+	std::shared_ptr<networking::cluster::ClusterManager> clusterManager;
+	std::shared_ptr<networking::cluster::ClusterEndpoint> clusterEndpoint;
+	boost::asio::io_context& ioContext;
+	boost::asio::ip::tcp::socket socket_;
+	std::deque<std::vector<uint8_t>> outgoingMessageQueue;
+	std::vector<uint8_t> inboundBuffer;
+	
+	public:
+	static std::shared_ptr<connection> createOutboundConnection(boost::asio::io_context &io_context, const std::shared_ptr<networking::cluster::ClusterManager>& manager, const char *host, const char *port);
+	
+	connection(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager);
+	
+	inline boost::asio::ip::tcp::socket& socket() { return socket_; }
+	
+	void start();
+	void sendMessage(std::vector<uint8_t> && message);
+	
+	private:
+	
+	void write();
+	void readAttempt();
 };

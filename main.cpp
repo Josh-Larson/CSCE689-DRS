@@ -33,8 +33,8 @@ int main(int argc, char *argv[]) {
 	auto clientPort = std::to_string(((argc >= 4) ? uint16_t(std::stoi(argv[3])) : DEFAULT_PORT));
 	auto io = boost::asio::io_context();
 	auto clusterManager = std::make_shared<networking::cluster::ClusterManager>();
-	auto serv = server(io, serverPort, clusterManager);
-	auto client = ((argc >= 3) ? connection::create(io, clusterManager, argv[2], clientPort.c_str()) : nullptr);
+	auto serv = server::createServer(io, serverPort, clusterManager);
+	auto client = ((argc >= 3) ? connection::createOutboundConnection(io, clusterManager, argv[2], clientPort.c_str()) : nullptr);
 	std::thread t;
 	if (client != nullptr) {
 		t = std::thread([&]() {
