@@ -18,6 +18,7 @@ class server : public std::enable_shared_from_this<server> {
 	
 	public:
 	static std::shared_ptr<server> createServer(boost::asio::io_context &io_context, int port, std::shared_ptr<networking::cluster::ClusterManager> manager);
+	~server();
 	
 	private:
 	server(boost::asio::io_context &io_context, int port, std::shared_ptr<networking::cluster::ClusterManager> clusterMgr);

@@ -22,7 +22,7 @@ class connection : public std::enable_shared_from_this<connection> {
 	std::vector<uint8_t> inboundBuffer;
 	
 	public:
-	static std::shared_ptr<connection> createOutboundConnection(boost::asio::io_context &io_context, const std::shared_ptr<networking::cluster::ClusterManager>& manager, const char *host, const char *port);
+	static std::shared_ptr<connection> createOutboundConnection(boost::asio::io_context &io_context, const std::shared_ptr<networking::cluster::ClusterManager>& manager, const std::string& host, const std::string& port);
 	
 	connection(boost::asio::io_context& io_context, std::shared_ptr<networking::cluster::ClusterManager> manager);
 	

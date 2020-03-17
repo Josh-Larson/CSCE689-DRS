@@ -17,6 +17,10 @@ server::server(boost::asio::io_context &io_context, int port, std::shared_ptr<ne
 	
 }
 
+server::~server() {
+	acceptor.close();
+}
+
 void server::accept() {
 	auto newConnection = std::make_shared<connection>(ioContext, clusterManager);
 	

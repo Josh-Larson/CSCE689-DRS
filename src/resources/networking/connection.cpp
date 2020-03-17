@@ -7,7 +7,7 @@ using boost::asio::buffer;
 using boost::asio::mutable_buffer;
 using boost::asio::const_buffer;
 
-std::shared_ptr<connection> connection::createOutboundConnection(boost::asio::io_context &io_context, const std::shared_ptr<networking::cluster::ClusterManager>& manager, const char *host, const char *port) {
+std::shared_ptr<connection> connection::createOutboundConnection(boost::asio::io_context &io_context, const std::shared_ptr<networking::cluster::ClusterManager>& manager, const std::string& host, const std::string& port) {
 	auto resolver = tcp::resolver(io_context);
 	auto endpoints = resolver.resolve(host, port);
 	auto ret = std::make_shared<connection>(io_context, manager);
