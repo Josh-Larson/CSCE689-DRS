@@ -2,7 +2,7 @@
 
 #include "ClusterEndpointId.h"
 #include <resources/protobuf/ProtobufStream.h>
-#include <resources/sbm/StereoBlockMatcher.h>
+#include <resources/disparity/StereoBlockMatcher.h>
 
 #include <opencv2/core.hpp>
 

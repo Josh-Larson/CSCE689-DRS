@@ -6,7 +6,7 @@
 #include <utility>
 #include <thread>
 #include <condition_variable>
-#include <resources/sbm/DirectStereoBlockMatcher.h>
+#include <resources/disparity/DirectStereoBlockMatcher.h>
 
 namespace networking::cluster {
 

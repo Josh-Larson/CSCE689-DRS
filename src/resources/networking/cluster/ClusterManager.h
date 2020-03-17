@@ -2,7 +2,7 @@
 
 #include "ClusterEndpointId.h"
 
-#include <resources/sbm/AggregatedStereoBlockMatcher.h>
+#include <resources/disparity/AggregatedStereoBlockMatcher.h>
 #include <messages.pb.h>
 
 #include <map>

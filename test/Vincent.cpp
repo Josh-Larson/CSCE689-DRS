@@ -5,7 +5,7 @@
 #include <mutex>
 #include <memory>
 #include <resources/disparity/StereoSegmentation.h>
-#include <resources/sbm/ThreadedStereoBlockMatcher.h>
+#include <resources/disparity/DirectStereoBlockMatcher.h>
 
 
 ////just for debugging
@@ -112,7 +112,7 @@ int main( int argc, char** argv )
 //    		cv::Mat(segment, segmentWindow.disparityImageView).copyTo(cv::Mat(disparityTest, transfer));
 //        }
 //    }
-	auto threadedMatcher = sbm::ThreadedStereoBlockMatcher();
+	auto threadedMatcher = sbm::DirectStereoBlockMatcher();
 	auto start2 = std::chrono::high_resolution_clock::now();
 	threadedMatcher.doSBM(remapL, remapR, disparityTest, numDisparities, blockSize);
 	auto end2 = std::chrono::high_resolution_clock::now();

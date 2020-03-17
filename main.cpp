@@ -6,7 +6,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <resources/sbm/DirectStereoBlockMatcher.h>
+#include <resources/disparity/DirectStereoBlockMatcher.h>
 
 constexpr uint16_t DEFAULT_PORT = 30781;
 
