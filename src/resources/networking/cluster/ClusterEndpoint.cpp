@@ -117,9 +117,8 @@ void ClusterEndpoint::onReceiveListClusterMessage(protobuf::ListClusterMessage &
 void ClusterEndpoint::onReceiveCalculateDisparities(protobuf::CalculateDisparitiesMessage &&message) {
 	auto leftImage = getImageFromData(message.leftimage(), message.width(), message.height(), CV_8U);
 	auto rightImage = getImageFromData(message.rightimage(), message.width(), message.height(), CV_8U);
-	auto sbm = sbm::DirectStereoBlockMatcher();
 	cv::Mat disparity, disparityOutput;
-	sbm.doSBM(leftImage, rightImage, disparity, message.numdisparities(), message.blocksize());
+	blockMatcher.doSBM(leftImage, rightImage, disparity, message.numdisparities(), message.blocksize());
 	disparity.convertTo(disparityOutput, CV_16U);
 	disparity = disparityOutput;
 	{

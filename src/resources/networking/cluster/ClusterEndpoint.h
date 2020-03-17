@@ -2,7 +2,7 @@
 
 #include "ClusterEndpointId.h"
 #include <resources/protobuf/ProtobufStream.h>
-#include <resources/disparity/StereoBlockMatcher.h>
+#include <resources/disparity/DirectStereoBlockMatcher.h>
 
 #include <opencv2/core.hpp>
 
@@ -24,6 +24,7 @@ class ClusterEndpoint : public sbm::StereoBlockMatcher {
 	protobuf::ProtobufStream                            receiveStream      = {};
 	std::atomic_uint64_t                                disparityMessageId = 1;
 	std::mutex                                          dataLock           = {};
+	sbm::DirectStereoBlockMatcher                       blockMatcher       = {};
 	
 	public:
 	ClusterEndpoint(ClusterEndpointId id, std::shared_ptr<ClusterManager> manager, std::function<void(std::vector<uint8_t> &&)> sendMessage);
